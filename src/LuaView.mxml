@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+  creationComplete="onCreationComplete()">
+  <mx:Script>
+    <![CDATA[
+      import mx.events.CloseEvent;
+      import mx.effects.Move;
+      import mx.containers.*;
+      import mx.controls.*;
+      import luaAlchemy.LuaAlchemy;
+	  import luaAlchemy.lua_wrapper;
+      import cmodule.lua_wrapper.CLibInit;
+      import flash.net.FileReference;
+      import flash.net.FileFilter;
+
+      import flash.events.IOErrorEvent;
+      import flash.events.Event;
+	  import flash.events.MouseEvent;
+	  import flash.events.KeyboardEvent;
+
+      import flash.utils.ByteArray;
+
+      private var myLuaAlchemy:LuaAlchemy;
+
+      [Bindable]
+      private var showClearStackLua:Boolean = false;
+
+      //FileReference Class well will use to load data
+      private var fr:FileReference;
+
+      //File types which we want the user to open
+      private static const FILE_TYPES:Array = [new FileFilter("All Files", "*.*")];
+
+      private var isCodeChanged:Boolean = false;
+		private var luaState:uint;
+//		private var luaState = lua_wrapper.luaInitilizeState();
+	
+      private function onCreationComplete():void
+      {
+        resetLua();
+        importClassesForLua();
+
+        LuaSampleCode.init();
+        sampleCodeCB.selectedIndex = 0;
+        luaCodeTA.text = sampleCodeCB.selectedItem.code
+      }
+
+      private function resetLua():void
+      {
+        if (myLuaAlchemy)
+        {
+          myLuaAlchemy.close();
+          myLuaAlchemy = null;
+        }
+        myLuaAlchemy = new LuaAlchemy();
+		myLuaAlchemy.setGlobal("stage", stage);
+        myLuaAlchemy.setGlobal("canvas", luaCanvas);
+        myLuaAlchemy.setGlobal("output", outputTA);
+      }
+
+      private function onRunClicked(event:MouseEvent):void
+      {
+        if (clearBeforeRunCB.selected)
+          outputTA.text = "";
+
+        if (resetBeforeRunCB.selected)
+        {
+          luaCanvas.removeAllChildren();
+          resetLua();
+        }
+        sampleCodeCB.selectedIndex = 5;
+		var stack:Array = myLuaAlchemy.doString(sampleCodeCB.selectedItem.code);
+		var success:Boolean = stack.shift();
+		outputTA.setStyle("color", success ? "black" : "red");
+        outputTA.text = outputTA.text +
+          (success ? "\n=== Return values ===\n" : "\n=== Error ===\n") +
+          stack.join("\n") + "\n";
+		var stack:Array = myLuaAlchemy.doString(getCode());
+       	var success:Boolean = stack.shift();
+		outputTA.setStyle("color", success ? "black" : "red");
+        outputTA.text = outputTA.text +
+          (success ? "\n" : "\n=== Error ===\n") +
+          stack.join("\n") + "\n";
+		var stack:Array = myLuaAlchemy.doString("love.run()");
+		var success:Boolean = stack.shift();
+        outputTA.setStyle("color", success ? "black" : "red");
+        outputTA.text = outputTA.text +
+          (success ? "\n" : "\n=== Error ===\n") +
+          stack.join("\n") + "\n";
+      }
+
+      private function onLoadClicked(event:MouseEvent):void
+      {
+        fr = new FileReference();
+        fr.addEventListener(Event.SELECT, onFileSelect);
+        fr.addEventListener(Event.CANCEL,onCancel);
+        fr.browse(FILE_TYPES);
+      }
+
+      private function onFileSelect(e:Event):void
+      {
+        fr.addEventListener(Event.COMPLETE, onLoadComplete);
+        fr.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
+        fr.load();
+      }
+
+      private function onLoadComplete(e:Event):void
+      {
+        var data:ByteArray = fr.data;
+        luaCodeTA.text = data.readUTFBytes(data.bytesAvailable);
+        fr = null;
+        isCodeChanged = false;
+      }
+
+      private function onLoadError(e:IOErrorEvent):void
+      {
+        trace("Error loading file : " + e.text);
+      }
+
+      private function onCancel(e:Event):void
+      {
+        trace("File Browse Canceled");
+        fr = null;
+      }
+
+      private function onSaveClicked(event:MouseEvent):void
+      {
+        fr = new FileReference();
+        fr.addEventListener(Event.COMPLETE, onFileSave);
+        fr.addEventListener(Event.CANCEL,onCancel);
+        fr.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
+        fr.save(getCode(), "LuaAlchemy.lua");
+      }
+
+      private function onFileSave(e:Event):void
+      {
+        trace("File Saved");
+        fr = null;
+        isCodeChanged = false;
+      }
+
+      private function onSaveError(e:IOErrorEvent):void
+      {
+        trace("Error Saving File : " + e.text);
+        fr = null;
+      }
+
+      private function onSampleChanged(event:Event):void
+      {
+        if (isCodeChanged)
+        {
+          Alert.show("Are you sure you want change the code without saving your changes?", "Abandon Changes?", Alert.YES + Alert.NO, this, onSampleChangedAlertClosed);
+        }
+        else
+        {
+          luaCodeTA.text = sampleCodeCB.selectedItem.code;
+        }
+      }
+
+      private function onSampleChangedAlertClosed(event:CloseEvent):void
+      {
+        if (event.detail==Alert.YES)
+        {
+          luaCodeTA.text = sampleCodeCB.selectedItem.code;
+          isCodeChanged = false;
+        }
+      }
+
+
+      /**
+      * When you compile in the Flex library statically, the linker only includes
+      * classes you are actually using.  Only the classes used would be available
+      * for the Lua script to create.  So to ensure the script has access to the
+      * classes I wanted to create, I declared one of them so it would be included.
+      */
+      private function importClassesForLua():void
+      {
+        var accordion:Accordion
+        var applicationControlBar:ApplicationControlBar
+        var box:Box
+        var boxDirection:BoxDirection
+        var canvas:Canvas
+        var controlBar:ControlBar
+        var dividedBox:DividedBox
+        var form:Form
+        var formHeading:FormHeading
+        var formItem:FormItem
+        var formItemDirection:FormItemDirection
+        var grid:Grid
+        var gridItem:GridItem
+        var gridRow:GridRow
+        var hBox:HBox
+        var hDividedBox:HDividedBox
+        var panel:Panel
+        var tabNavigator:TabNavigator
+        var tile:Tile
+        var tileDirection:TileDirection
+        var titleWindow:TitleWindow
+        var vBox:VBox
+        var vDividedBox:VDividedBox
+        var viewStack:ViewStack
+
+        var alert:Alert
+        var button:Button
+        var buttonBar:ButtonBar
+        var buttonLabelPlacement:ButtonLabelPlacement
+        var checkBox:CheckBox
+        var colorPicker:ColorPicker
+        var comboBase:ComboBase
+        var comboBox:ComboBox
+        var dataGrid:DataGrid
+        var dateChooser:DateChooser
+        var dateField:DateField
+        var formItemLabel:FormItemLabel
+        var horizontalList:HorizontalList
+        var hRule:HRule
+        var hScrollBar:HScrollBar
+        var hSlider:HSlider
+        var image:Image
+        var label:Label
+        var linkBar:LinkBar
+        var linkButton:LinkButton
+        var list:List
+        var menu:Menu
+        var menuBar:MenuBar
+        var navBar:NavBar
+        var numericStepper:NumericStepper
+        var popUpButton:PopUpButton
+        var popUpMenuButton:PopUpMenuButton
+        var progressBar:ProgressBar
+        var progressBarDirection:ProgressBarDirection
+        var progressBarLabelPlacement:ProgressBarLabelPlacement
+        var progressBarMode:ProgressBarMode
+        var radioButton:RadioButton
+        var radioButtonGroup:RadioButtonGroup
+        var richTextEditor:RichTextEditor
+        var spacer:Spacer
+        var sWFLoader:SWFLoader
+        var tabBar:TabBar
+        var text:Text
+        var textArea:TextArea
+        var textInput:TextInput
+        var tileList:TileList
+        var toggleButtonBar:ToggleButtonBar
+        var toolTip:ToolTip
+        var tree:Tree
+        var videoDisplay:VideoDisplay
+        var vRule:VRule
+        var vScrollBar:VScrollBar
+        var vSlider:VSlider
+
+        var timer:Timer
+        var move:Move
+      }
+
+      private function getCode():String
+      {
+        var rawText:String = luaCodeTA.htmlText.replace(/[<]\/P[>]/g, "\n"); // change all </P> to line returns
+        rawText = rawText.replace(/<[a-zA-Z\/][^>]*>/g, ""); // strip all html
+
+        var space:RegExp = /[ \t]/;
+
+        // for each line
+        var ret:String = "";
+        var line:String;
+        for each (line in rawText.split("\n"))
+        {
+          if (ret != "") // add line return if not first line
+             ret = ret + "\n"
+
+          // preserve beginning spaces
+          for (var i:int = 0; i < line.length; i++)
+          {
+            if (space.test(line.charAt(i)))
+              ret = ret + line.charAt(i)
+            else
+              break;
+          }
+          // use XML to transform any &quot; type escapes to raw text
+          ret = ret + XML("<line>" + line + "</line>").text();
+        }
+
+        return ret;
+      }
+    ]]>
+  </mx:Script>
+  <mx:Panel title="Code" width="100%" height="100%" layout="vertical"
+    paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5">
+    <mx:HBox>
+      <mx:Label text="Samples:"/>
+        <mx:ComboBox id="sampleCodeCB"
+          dataProvider="{LuaSampleCode.sampleCode}"
+          labelField="label"
+          change="onSampleChanged(event)"
+          toolTip="Select code samples to show in the code area below when 'Show' is clicked."/>
+    </mx:HBox>
+    <mx:TextArea id="luaCodeTA" width="100%" height="100%" condenseWhite="false"
+      paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" wordWrap="false"
+      change="isCodeChanged = true"/>
+    <mx:HBox horizontalAlign="center">
+      <mx:Button id="runBtn" label="Run!" click="onRunClicked(event)" toolTip="Run the Lua code"/>
+      <mx:Button label="Reset" click="resetLua()" toolTip="Reset the Lua Context"
+        visible="{showClearStackLua}" includeInLayout="{showClearStackLua}"/>
+      <mx:Spacer width="25"/>
+      <mx:Button label="Load" click="onLoadClicked(event)" toolTip="Load Lua code from file"/>
+      <mx:Button label="Save" click="onSaveClicked(event)" toolTip="Save Lua code to file"/>
+      <mx:Spacer width="25"/>
+      <mx:Button label="Clear" click="luaCodeTA.text = ''" toolTip="Clear the Lua code"/>
+    </mx:HBox>
+    <mx:CheckBox id="resetBeforeRunCB" label="Reset Lua before Run" selected="true"
+      toolTip="If this is unchecked, code will accumulate in Lua and be rerun."
+      visible="{showClearStackLua}" includeInLayout="{showClearStackLua}"/>
+  </mx:Panel>
+  <mx:Panel title="Love" layout="vertical" width="100%" height="100%"
+    paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5">
+    <mx:VDividedBox width="100%" height="100%">
+      <mx:Panel title="Game"
+        width="100%" height="100%" layout="vertical"
+        toolTip="Here your game is drawn.">
+        <mx:Canvas id="luaCanvas" width="100%" height="100%"/>
+      </mx:Panel>
+      <mx:Panel title="Output"
+        width="100%" height="100%" layout="vertical"
+        toolTip="Shows values returned from Lua script.">
+        <mx:TextArea id="outputTA" editable="false" width="100%" height="100%"
+          paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
+        <mx:HBox width="100%" visible="{showClearStackLua}" includeInLayout="{showClearStackLua}">
+          <mx:Button label="Clear" click="outputTA.text = ''" toolTip="Clear the displayed Lua return stack"
+            visible="{showClearStackLua}" includeInLayout="{showClearStackLua}"/>
+          <mx:CheckBox id="clearBeforeRunCB" label="Clear Stack before Run" selected="true"
+            toolTip="If checked, the stack result will be cleared before running"
+            visible="{showClearStackLua}" includeInLayout="{showClearStackLua}"/>
+        </mx:HBox>
+      </mx:Panel>
+    </mx:VDividedBox>
+    <!-- TODO would like to redirect stdout,stderr here
+    <mx:Panel title="Lua stdout, stderr, stdin" width="100%" height="100%" includeInLayout="false" visible="false">
+      <mx:UIComponent id="luaStdioTA" width="100%" height="100%"/>
+    </mx:Panel>
+    -->
+  </mx:Panel>
+</mx:HDividedBox>
