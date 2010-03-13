@@ -298,9 +298,8 @@
       paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" wordWrap="false"
       change="isCodeChanged = true"/>
     <mx:HBox horizontalAlign="center">
-      <mx:Button id="runBtn" label="Run!" click="onRunClicked(event)" toolTip="Run the Lua code"/>
-      <mx:Button label="Reset" click="resetLua()" toolTip="Reset the Lua Context"
-        visible="{showClearStackLua}" includeInLayout="{showClearStackLua}"/>
+      <mx:Button id="runBtn" label="Run!" click="onRunClicked(event)" toolTip="Run the Game"/>
+      <mx:Button label="Stop!" click="resetLua()" toolTip="Stop Game!" />
       <mx:Spacer width="25"/>
       <mx:Button label="Load" click="onLoadClicked(event)" toolTip="Load Lua code from file"/>
       <mx:Button label="Save" click="onSaveClicked(event)" toolTip="Save Lua code to file"/>

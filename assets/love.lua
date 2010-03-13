@@ -88,6 +88,13 @@ love.mouse = {}
 love.physics = {}
 love.sound = {}
 love.timer = {}
+function love.timer.getMicroTime()
+	return as3.tolua(as3.namespace.flash.utils.getTimer())
+end
+function love.timer.getTime()
+	local time = as3.tolua(love.timer.getMicroTime())/1000
+	return time
+end
 
 love.imagesloadet = {}
 love.keyDown = false
@@ -105,12 +112,12 @@ function love.callback.mousereleased()
 	love.mousereleased(canvas.mouseX,canvas.mousey,"l")
 end
 function love.callback.keypressed(event)
-	love.keyDown = event.charCode
-	love.keypressed(event.charCode)
+	love.keyDown = string.char(as3.tolua(event.charCode))
+	love.keypressed(love.keyDown)
 end
 function love.callback.keyreleased(event)
-	love.keyDown = false
-	love.keyreleased(event.charCode) 
+	love.keyDown = string.char(as3.tolua(event.charCode))
+	love.keyreleased(love.keyDown) 
 end
  
 love.fontsize = 12

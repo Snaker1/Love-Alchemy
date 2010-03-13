@@ -3,12 +3,12 @@
   xmlns:mx="http://www.adobe.com/2006/mxml"
   layout="vertical" xmlns:local="*" backgroundColor="0xb2d9f0">
   <mx:HBox width="100%" >
-    <mx:Label text="Try Loveplayer 0.0.1!" fontWeight="bold" fontSize="16"/>
+    <mx:Label text="Try Love Alchemy!" fontWeight="bold" fontSize="16"/>
     <mx:Spacer width="100%"/>
 	<mx:LinkButton label="Love"
       click="navigateToURL(new URLRequest('http://Love2d.org'), 'about_window')"/>
     <mx:LinkButton label="About"
-      click="navigateToURL(new URLRequest('http://code.google.com/p/lua-alchemy/'), 'about_window')"/>
+      click="navigateToURL(new URLRequest('http://github.com/Snaker1/Love-Alchemy'), 'about_window')"/>
     <mx:LinkButton label="Help"
       click="navigateToURL(new URLRequest('http://code.google.com/p/lua-alchemy/wiki/LuaAlchemyDemo'), 'help_window')"/>
   </mx:HBox>
