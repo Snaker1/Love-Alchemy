@@ -47,6 +47,8 @@
 
       private function resetLua():void
       {
+		stopBtn.visible = false;
+		luaCanvas.removeAllChildren();
         if (myLuaAlchemy)
         {
           myLuaAlchemy.close();
@@ -68,6 +70,7 @@
           luaCanvas.removeAllChildren();
           resetLua();
         }
+		stopBtn.visible = true;
         sampleCodeCB.selectedIndex = 5;
 		var stack:Array = myLuaAlchemy.doString(sampleCodeCB.selectedItem.code);
 		var success:Boolean = stack.shift();
@@ -299,7 +302,7 @@
       change="isCodeChanged = true"/>
     <mx:HBox horizontalAlign="center">
       <mx:Button id="runBtn" label="Run!" click="onRunClicked(event)" toolTip="Run the Game"/>
-      <mx:Button label="Stop!" click="resetLua()" toolTip="Stop Game!" />
+      <mx:Button id="stopBtn" label="Stop!" click="resetLua()" toolTip="Stop Game!" visible="false" />
       <mx:Spacer width="25"/>
       <mx:Button label="Load" click="onLoadClicked(event)" toolTip="Load Lua code from file"/>
       <mx:Button label="Save" click="onSaveClicked(event)" toolTip="Save Lua code to file"/>

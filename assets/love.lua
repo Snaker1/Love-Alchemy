@@ -1,6 +1,7 @@
 -- This file gets executed before your game runs
 
 canvas.framerate = 30
+
 love = {}
 love.audio = {}
 love.filesystem = {}
@@ -35,7 +36,7 @@ love.graphics = {}
 		label.text = text
 		label.x = x
 		label.y = y
-		label.setStyle("color", color); 
+		label.setStyle("color", color);
 		label.setStyle("fontSize",love.fontsize)
 		canvas.addChild(label)
 	end
@@ -47,7 +48,7 @@ love.graphics = {}
 		label.width = limit
 		label.setStyle("textAlign",align)
 		label.setStyle("fontSize",fontsize)
-		label.setStyle("color", color); 
+		label.setStyle("color", color);
 		canvas.addChild(label)
 	end
 	function love.graphics.rectangle(mode,x,y,width,height)
@@ -55,7 +56,7 @@ love.graphics = {}
 		box.width = width
 		box.height = height
 		box.x, box.y = x,y
-		if mode == "fill" then 
+		if mode == "fill" then
 			box.setStyle("backgroundColor",color)
 		else
 			box.setStyle("borderColor",color)
@@ -75,8 +76,50 @@ love.graphics = {}
 love.image = {}
 love.joystick = {}
 love.keyboard = {}
+	function love.keyboard.getKey(keyCode,charCode)
+		local key = ""
+		if keyCode == 37 then
+			key = "left"
+		elseif keyCode == 38 then
+			key = "up"
+		elseif keyCode == 39 then
+			key = "right"
+		elseif keyCode == 40 then
+			key = "down"
+		elseif keyCode == 18 then
+			keyCode = "lalt"
+		elseif keyCode == 8 then
+			key = "backspace"
+		elseif keyCode == 20 then
+			key = "capslock"
+		elseif keyCode == 17 then
+			key = "lctrl"
+		elseif keyCode == 46 then
+			key = "delete"
+		elseif keyCode == 13 then
+			key = "return"
+		elseif keyCode == 27 then
+			key = "escape"
+		elseif keyCode >= 112 and keyCode <= 123 then
+			key = "f"..(keyCode - 111)
+		elseif keyCode == 45 then
+			key = "insert"
+		elseif keyCode == 16 then
+			key = "lshift"
+		elseif keyCode == 9 then
+			key = "tab"
+		else
+			key = string.char(charCode)
+		end
+		return key
+	end
+
 	function love.keyboard.isDown( key )
-		return love.keyDown
+		 for i, v in ipairs(love.keyDown) do 
+			if v == key then
+				return true
+			end
+		end
 	end
 love.mouse = {}
 	function love.mouse.getX()
@@ -97,14 +140,15 @@ function love.timer.getTime()
 end
 
 love.imagesloadet = {}
-love.keyDown = false
+
 
 function love.mousepressed(x,y,button) end
 function love.mousereleased(x,y,button) end
 function love.keypressed() end
 function love.keyreleased() end
 
-love.callback = {} 
+
+love.callback = {}
 function love.callback.mousepressed()
 	love.mousepressed(canvas.mouseX,canvas.mousey,"l")
 end
@@ -112,18 +156,29 @@ function love.callback.mousereleased()
 	love.mousereleased(canvas.mouseX,canvas.mousey,"l")
 end
 function love.callback.keypressed(event)
-	love.keyDown = string.char(as3.tolua(event.charCode))
-	love.keypressed(love.keyDown)
+local charCode = tonumber(as3.tolua(event.charCode) )
+local keyCode = tonumber(as3.tolua(event.keyCode))
+local keyDown = love.keyboard.getKey(keyCode,charCode)
+
+	love.keypressed(keyDown)
+	table.insert(love.keyDown,keyDown)
 end
 function love.callback.keyreleased(event)
-	love.keyDown = string.char(as3.tolua(event.charCode))
-	love.keyreleased(love.keyDown) 
+	local charCode = tonumber(as3.tolua(event.charCode) )
+	local keyCode = tonumber(as3.tolua(event.keyCode))
+	local keyDown = love.keyboard.getKey(keyCode,charCode)
+	love.keyreleased(keyDown)
+	 for i, v in ipairs(love.keyDown) do 
+		if v == keyDown then
+			table.remove(love.keyDown,i)
+		end
+	end
 end
  
 love.fontsize = 12
 color = "0x000000"
 
-function love.refresh() 
+function love.refresh()
 	canvas.removeAllChildren()
 	if love.update then love.update(0.03) end
 	if love.draw then love.draw() end
@@ -137,4 +192,7 @@ function love.run()
 	stage.addEventListener(as3.class.flash.events.KeyboardEvent.KEY_DOWN, love.callback.keypressed);
 	stage.addEventListener(as3.class.flash.events.KeyboardEvent.KEY_UP, love.callback.keyreleased);
 end
+
+love.keyDown = {}
+
 

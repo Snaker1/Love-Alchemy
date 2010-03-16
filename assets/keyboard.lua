@@ -1,25 +1,20 @@
 -- Example: Keyboard callbacks
 
-function love.load()key = ""
-	lastkey = "none"
-	keychar = ""
+function love.load()
+	lastkey = "nothing"
 end
 
 -- Keypressed: Called whenever a key was pressed.
 function love.keypressed(key)
-	lastkey = "pressed"
-	keychar = key
+	lastkey = key .. " pressed"
 end
 
 -- Keyreleased: Called whenever a key was released.
 function love.keyreleased(key)
-	lastkey = "released"
-	keychar = key
+	lastkey = key .. " released"
 end
 
--- Output if key was pressed/released.
+-- Output the last mouse button which was pressed/released.
 function love.draw()
-	love.graphics.print("key: "..lastkey, 100, 100)
-	love.graphics.print(keychar,100,120)
+	love.graphics.print("Last key: " .. lastkey, 100, 100)
 end
-
