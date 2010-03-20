@@ -5,6 +5,7 @@
     <![CDATA[
       import mx.events.CloseEvent;
       import mx.effects.Move;
+	  import mx.effects.Rotate;
       import mx.containers.*;
       import mx.controls.*;
       import luaAlchemy.LuaAlchemy;
@@ -48,6 +49,7 @@
       private function resetLua():void
       {
 		stopBtn.visible = false;
+		runBtn.label = "Run!";
 		luaCanvas.removeAllChildren();
         if (myLuaAlchemy)
         {
@@ -71,6 +73,7 @@
           resetLua();
         }
 		stopBtn.visible = true;
+		runBtn.label = "Restart!";
         sampleCodeCB.selectedIndex = 5;
 		var stack:Array = myLuaAlchemy.doString(sampleCodeCB.selectedItem.code);
 		var success:Boolean = stack.shift();
@@ -254,6 +257,7 @@
 
         var timer:Timer
         var move:Move
+		var rotate:Rotate
       }
 
       private function getCode():String

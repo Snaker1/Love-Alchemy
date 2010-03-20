@@ -22,10 +22,19 @@ love.graphics = {}
 		table.insert(love.imagesloadet,image)
 		return #love.imagesloadet
 	end
-	function love.graphics.draw(source,x,y,rotation,sx,sy)
-			local image = love.imagesloadet[source]
+	function love.graphics.draw(source,x,y,rotation,sx,sy,ox,oy)
+		local image = love.imagesloadet[source]
+		if rotation then image.rotation = rotation end
+		if ox and oy then	
+			local rad_angle = rotation * (3.1415926 / 180) 
+			local xoff = math.cos(rad_angle) * (x- (x+ox)) - math.sin(rad_angle) * (y-(y+oy))+ox
+			local yoff = math.sin(rad_angle) * (x-(x+ox)) + math.cos(rad_angle) * (y-(y+oy))+ox
+			image.x =  x + xoff
+			image.y = y + yoff
+		else 
 			image.x = x
 			image.y = y
+		end
 			image.maintainAspectRatio="false"
 			if sx then image.width = sx end
 			if sy then image.height = sy end
@@ -65,7 +74,9 @@ love.graphics = {}
 		canvas.addChild(box)
 	end
 	function love.graphics.getColor()
-		return color -- returns color in hex
+		return tonumber(string.sub(color,3,4),16),
+			tonumber(string.sub(color,5,6),16),
+			tonumber(string.sub(color,7,8),16)
 	end
 	function love.graphics.getWidth()
 		return canvas.width
