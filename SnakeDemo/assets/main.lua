@@ -1,11 +1,12 @@
 function love.load()
 	g = love.graphics
-	pos = {160,304}
+	pos = {}
+	pos.x = 160
+	pos.y = 304
 	body = {{0,0}}
 	lenght = 3
 	angle = 0
 	dsize = 16 
-	alive = true
 	pause = true
 	fruit_pos = {math.random(1,18)*16, math.random(1,18)*16}
 	g.setFont(12)
@@ -44,45 +45,43 @@ end
 	
 function love.update(dt)
 	if not pause then
-		table.insert(body,1,{pos[1],pos[2]})
+		table.insert(body,1,{pos.x,pos.y})
 		table.remove (body,lenght)
 		if angle == 0 then
-			pos[2] = pos[2]  - dsize 
+			pos.y = pos.y  - dsize 
 		end
 		if angle == 270 then 
-			pos[1] = pos[1] - dsize 
+			pos.x = pos.x - dsize 
 		end
 		if angle == 180 then
-			pos[2] = pos[2] + dsize 
+			pos.y = pos.y + dsize 
 		end
 		if angle == 90 then
-			pos[1] = pos[1] + dsize 
+			pos.x = pos.x + dsize 
 		end
 	
-		if pos[1]  >= 320 or pos[1] < 0 or
-			pos[2] >= 320  or pos[2] < 0 then
+		if pos.x  >= 320 or pos.x < 0 or
+			pos.y >= 320  or pos.y < 0 then
 			love.load()
 		end
-		if pos[1]  == fruit_pos[1] and pos[2] == fruit_pos[2] then 
+		if pos.x  == fruit_pos[1] and pos.y == fruit_pos[2] then 
 			fruit_pos = {math.random(1,18)*16, math.random(1,18)*16}
 			lenght = lenght + 1
 		end
 		for i = 1, #body  do 
-			if pos[1] == body[i][1] and pos[2] == body[i][2]  then
+			if pos.x == body[i][1] and pos.y == body[i][2]  then
 			love.load()
 			end
 		end
 	end
-	if not alive then
-		love.load()
-	end	
+	love.timer.sleep(300)
 end
 
 function love.draw()
 	g.setColor(250, 250, 250)
 	g.print(lenght-3, 0,0)
 	g.setColor(0, 200, 0)
-	g.rectangle("line",pos[1], pos[2],dsize,dsize)
+	g.rectangle("line",pos.x, pos.y,dsize,dsize)
 	g.setColor(0, 125, 0)
 	for i = 1, #body , 1 do
 		g.rectangle("line",body[i][1],body[i][2],dsize,dsize)

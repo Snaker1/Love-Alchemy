@@ -1,6 +1,6 @@
 -- This file gets executed before your game runs
 
-canvas.framerate = 10
+canvas.framerate = 30
 print = as3.makeprinter(output)
 love = {}
 love.recycle = {}
@@ -197,6 +197,13 @@ function love.timer.getTime()
 	local time = as3.tolua(as3.namespace.flash.utils.getTimer())/1000
 	return time
 end
+function love.timer.sleep(sleep)
+	function love.refresh() end
+	as3.namespace.flash.utils.setTimeout(love.timer.resume,sleep)
+end
+function love.timer.resume()
+	love.refresh = love.dorefresh()
+end
 
 love.imagesloadet = {}
 
@@ -237,7 +244,7 @@ end
 love.fontsize = 12
 color = "0x000000"
 
-function love.refresh()
+function love.dorefresh()
 	local newtime = as3.tolua(as3.namespace.flash.utils.getTimer())
 	delta = (newtime - oldtime)/1000 
 	oldtime = newtime
@@ -260,6 +267,7 @@ end
 function love.run()
 	if love.load then love.load() end
 	oldtime = 0
+	love.refresh = love.dorefresh
 	canvas.addEventListener(as3.class.flash.events.Event.ENTER_FRAME, love.enterFrame)
 	canvas.addEventListener(as3.class.flash.events.MouseEvent.MOUSE_DOWN,love.callback.mousepressed);
 	canvas.addEventListener(as3.class.flash.events.MouseEvent.MOUSE_UP,love.callback.mousereleased);
@@ -272,7 +280,7 @@ as3.onclose(
   function(e)
 	canvas.removeAllChildren()
 	flash.ui.Mouse.show()
-	canvas.removeEventListener(as3.class.flash.events.Event.ENTER_FRAME, love.refresh)
+	canvas.removeEventListener(as3.class.flash.events.Event.ENTER_FRAME, love.enterFrame)
 	canvas.removeEventListener(as3.class.flash.events.MouseEvent.MOUSE_DOWN,love.callback.mousepressed);
 	canvas.removeEventListener(as3.class.flash.events.MouseEvent.MOUSE_UP,love.callback.mousereleased);
 	stage.removeEventListener(as3.class.flash.events.KeyboardEvent.KEY_DOWN, love.callback.keypressed);
