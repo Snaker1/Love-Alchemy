@@ -4,12 +4,9 @@
   <mx:Script>
     <![CDATA[
       import mx.events.CloseEvent;
-      import mx.effects.Move;
-	  import mx.effects.Rotate;
       import mx.containers.*;
       import mx.controls.*;
       import luaAlchemy.LuaAlchemy;
-	  import luaAlchemy.lua_wrapper;
       import cmodule.lua_wrapper.CLibInit;
       import flash.net.FileReference;
       import flash.net.FileFilter;
@@ -18,12 +15,10 @@
       import flash.events.Event;
 	  import flash.events.MouseEvent;
 	  import flash.events.KeyboardEvent;
-
       import flash.utils.ByteArray;
 
       private var myLuaAlchemy:LuaAlchemy;
-
-      [Bindable]
+	  [Bindable]
       private var showClearStackLua:Boolean = false;
 
       //FileReference Class well will use to load data
@@ -34,7 +29,6 @@
 
       private var isCodeChanged:Boolean = false;
 		private var luaState:uint;
-//		private var luaState = lua_wrapper.luaInitilizeState();
 	
       private function onCreationComplete():void
       {
@@ -51,6 +45,11 @@
 		stopBtn.visible = false;
 		runBtn.label = "Run!";
 		luaCanvas.removeAllChildren();
+		try {
+		new LocalConnection().connect('foo');
+		new LocalConnection().connect('foo');
+		} catch (e:*) {}
+		// the GC will perform a full mark/sweep on the second call.
         if (myLuaAlchemy)
         {
           myLuaAlchemy.close();
@@ -181,83 +180,14 @@
       */
       private function importClassesForLua():void
       {
-        var accordion:Accordion
-        var applicationControlBar:ApplicationControlBar
-        var box:Box
-        var boxDirection:BoxDirection
         var canvas:Canvas
-        var controlBar:ControlBar
-        var dividedBox:DividedBox
-        var form:Form
-        var formHeading:FormHeading
-        var formItem:FormItem
-        var formItemDirection:FormItemDirection
-        var grid:Grid
-        var gridItem:GridItem
-        var gridRow:GridRow
-        var hBox:HBox
-        var hDividedBox:HDividedBox
-        var panel:Panel
-        var tabNavigator:TabNavigator
-        var tile:Tile
-        var tileDirection:TileDirection
-        var titleWindow:TitleWindow
-        var vBox:VBox
-        var vDividedBox:VDividedBox
         var viewStack:ViewStack
-
-        var alert:Alert
         var button:Button
-        var buttonBar:ButtonBar
-        var buttonLabelPlacement:ButtonLabelPlacement
-        var checkBox:CheckBox
-        var colorPicker:ColorPicker
-        var comboBase:ComboBase
-        var comboBox:ComboBox
-        var dataGrid:DataGrid
-        var dateChooser:DateChooser
-        var dateField:DateField
-        var formItemLabel:FormItemLabel
-        var horizontalList:HorizontalList
-        var hRule:HRule
-        var hScrollBar:HScrollBar
-        var hSlider:HSlider
         var image:Image
         var label:Label
-        var linkBar:LinkBar
-        var linkButton:LinkButton
-        var list:List
-        var menu:Menu
-        var menuBar:MenuBar
-        var navBar:NavBar
-        var numericStepper:NumericStepper
-        var popUpButton:PopUpButton
-        var popUpMenuButton:PopUpMenuButton
-        var progressBar:ProgressBar
-        var progressBarDirection:ProgressBarDirection
-        var progressBarLabelPlacement:ProgressBarLabelPlacement
-        var progressBarMode:ProgressBarMode
-        var radioButton:RadioButton
-        var radioButtonGroup:RadioButtonGroup
-        var richTextEditor:RichTextEditor
-        var spacer:Spacer
-        var sWFLoader:SWFLoader
-        var tabBar:TabBar
         var text:Text
-        var textArea:TextArea
-        var textInput:TextInput
-        var tileList:TileList
-        var toggleButtonBar:ToggleButtonBar
-        var toolTip:ToolTip
-        var tree:Tree
-        var videoDisplay:VideoDisplay
-        var vRule:VRule
-        var vScrollBar:VScrollBar
-        var vSlider:VSlider
-
+		var textfield:TextField
         var timer:Timer
-        var move:Move
-		var rotate:Rotate
       }
 
       private function getCode():String

@@ -1,11 +1,35 @@
 -- This file gets executed before your game runs
 
 canvas.framerate = 30
-
+print = as3.makeprinter(output)
 love = {}
+love.recycle = {}
+love.recycle.pos = {}
+love.recycle.label = {}
+love.recycle.pos.label = 0
+love.recycle.text = {}
+love.recycle.pos.text = 0
+love.recycle.rect = {}
+love.recycle.pos.rect = 0
+love.recycle.draw = {}
+love.recycle.pos.draw = 0
+function love.recycle.clear(object,pos)
+	if #object > pos then
+		canvasText.removeChild(object[#object])
+		table.remove(object)
+	end 
+	pos = 0
+end
+ 
+canvasText = as3.class.mx.containers.Canvas.new()
+canvasEtc = as3.class.mx.containers.Canvas.new()
+canvas.addChild(canvasText)
+canvas.addChild(canvasEtc)
+
 love.audio = {}
 love.filesystem = {}
 love.graphics = {}
+
 	function love.graphics.setFont(size)
 		love.fontsize = size
 	end
@@ -38,40 +62,57 @@ love.graphics = {}
 			image.maintainAspectRatio="false"
 			if sx then image.width = sx end
 			if sy then image.height = sy end
-			canvas.addChild(image)
+			canvasEtc.addChild(image)
 	end
 	function love.graphics.print(text,x,y)
-		local label = as3.class.mx.controls.Label.new()
+		love.recycle.pos.label = love.recycle.pos.label + 1
+		if not (#love.recycle.label > love.recycle.pos.label) then
+			local label = as3.class.mx.controls.Label.new()
+			table.insert(love.recycle.label,label)
+			canvasText.addChild(love.recycle.label[love.recycle.pos.label])
+		end
+		local label = love.recycle.label[love.recycle.pos.label]
 		label.text = text
 		label.x = x
 		label.y = y
 		label.setStyle("color", color);
 		label.setStyle("fontSize",love.fontsize)
-		canvas.addChild(label)
 	end
 	function love.graphics.printf(text,x,y,limit,align)
-		local label = as3.class.mx.controls.Text.new()
-		label.text = text
-		label.x = x
-		label.y = y
-		label.width = limit
-		label.setStyle("textAlign",align)
-		label.setStyle("fontSize",fontsize)
-		label.setStyle("color", color);
-		canvas.addChild(label)
+		love.recycle.pos.text = love.recycle.pos.text + 1
+		if #love.recycle.text <  love.recycle.pos.text then
+			local text = as3.class.mx.controls.Text.new()
+			table.insert(love.recycle.text,text)
+			canvasText.addChild(love.recycle.text[love.recycle.pos.text])
+		end
+		local text = love.recycle.text[love.recycle.pos.text]
+		text.text = text
+		text.x = x
+		text.y = y
+		if limit then
+			text.width = limit
+		end
+		text.setStyle("textAlign",align)
+		text.setStyle("fontSize",fontsize)
+		text.setStyle("color", color);
 	end
 	function love.graphics.rectangle(mode,x,y,width,height)
-		local box = as3.class.mx.containers.Canvas.new()
-		box.width = width
-		box.height = height
-		box.x, box.y = x,y
-		if mode == "fill" then
-			box.setStyle("backgroundColor",color)
-		else
-			box.setStyle("borderColor",color)
-			box.setStyle("borderStyle","solid")
+		love.recycle.pos.rect = love.recycle.pos.rect + 1
+		if #love.recycle.rect <  love.recycle.pos.rect then
+			local rect = as3.class.mx.containers.Canvas.new()
+			table.insert(love.recycle.rect,rect)
+			canvasText.addChild(love.recycle.rect[love.recycle.pos.rect])
 		end
-		canvas.addChild(box)
+		local rect = love.recycle.rect[love.recycle.pos.rect]
+		rect.width = width
+		rect.height = height
+		rect.x, rect.y = x,y
+		if mode == "fill" then
+			rect.setStyle("backgroundColor",color)
+		else
+			rect.setStyle("borderColor",color)
+			rect.setStyle("borderStyle","solid")
+		end
 	end
 	function love.graphics.getColor()
 		return tonumber(string.sub(color,3,4),16),
@@ -139,6 +180,13 @@ love.mouse = {}
 	function love.mouse.getY()
 		return canvas.mouseY
 	end
+	function love.mouse.setVisible(visible)
+		if visible then
+			as3.class.flash.ui.Mouse.show()
+		else	
+			as3.class.flash.ui.Mouse.hide()
+		end
+	end
 love.physics = {}
 love.sound = {}
 love.timer = {}
@@ -146,7 +194,7 @@ function love.timer.getMicroTime()
 	return as3.tolua(as3.namespace.flash.utils.getTimer())
 end
 function love.timer.getTime()
-	local time = as3.tolua(love.timer.getMicroTime())/1000
+	local time = as3.tolua(as3.namespace.flash.utils.getTimer())/1000
 	return time
 end
 
@@ -190,13 +238,28 @@ love.fontsize = 12
 color = "0x000000"
 
 function love.refresh()
-	canvas.removeAllChildren()
-	if love.update then love.update(0.03) end
+	local newtime = as3.tolua(as3.namespace.flash.utils.getTimer())
+	delta = (newtime - oldtime)/1000 
+	oldtime = newtime
+	canvasEtc.removeAllChildren()
+	if love.update then love.update(delta) end
 	if love.draw then love.draw() end
+	
+	love.recycle.clear(love.recycle.label,love.recycle.pos.label)
+	love.recycle.clear(love.recycle.text,love.recycle.pos.text)
+	love.recycle.clear(love.recycle.rect,love.recycle.pos.rect)
+	love.recycle.pos.label = 0
+	love.recycle.pos.text = 0
+	love.recycle.pos.rect = 0
+	collectgarbage("collect")
+end
+function love.enterFrame()
+	as3.namespace.flash.utils.setTimeout(love.refresh,1) -- sleep 1 ms
 end
 
 function love.run()
 	if love.load then love.load() end
+	oldtime = 0
 	canvas.addEventListener(as3.class.flash.events.Event.ENTER_FRAME, love.refresh)
 	canvas.addEventListener(as3.class.flash.events.MouseEvent.MOUSE_DOWN,love.callback.mousepressed);
 	canvas.addEventListener(as3.class.flash.events.MouseEvent.MOUSE_UP,love.callback.mousereleased);
@@ -205,5 +268,17 @@ function love.run()
 end
 
 love.keyDown = {}
+as3.onclose(
+  function(e)
+	canvas.removeAllChildren()
+	flash.ui.Mouse.show()
+	canvas.removeEventListener(as3.class.flash.events.Event.ENTER_FRAME, love.refresh)
+	canvas.removeEventListener(as3.class.flash.events.MouseEvent.MOUSE_DOWN,love.callback.mousepressed);
+	canvas.removeEventListener(as3.class.flash.events.MouseEvent.MOUSE_UP,love.callback.mousereleased);
+	stage.removeEventListener(as3.class.flash.events.KeyboardEvent.KEY_DOWN, love.callback.keypressed);
+	stage.removeEventListener(as3.class.flash.events.KeyboardEvent.KEY_UP, love.callback.keyreleased);
+end)
+
+
 
 
