@@ -15,15 +15,13 @@ love.recycle.draw = {}
 love.recycle.pos.draw = 0
 function love.recycle.clear(object,pos)
 	if #object > pos then
-		canvasText.removeChild(object[#object])
+		canvas.removeChild(object[#object])
 		table.remove(object)
 	end 
 	pos = 0
 end
  
-canvasText = as3.class.mx.containers.Canvas.new()
 canvasEtc = as3.class.mx.containers.Canvas.new()
-canvas.addChild(canvasText)
 canvas.addChild(canvasEtc)
 
 love.audio = {}
@@ -69,7 +67,7 @@ love.graphics = {}
 		if not (#love.recycle.label > love.recycle.pos.label) then
 			local label = as3.class.mx.controls.Label.new()
 			table.insert(love.recycle.label,label)
-			canvasText.addChild(love.recycle.label[love.recycle.pos.label])
+			canvas.addChild(love.recycle.label[love.recycle.pos.label])
 		end
 		local label = love.recycle.label[love.recycle.pos.label]
 		label.text = text
@@ -83,7 +81,7 @@ love.graphics = {}
 		if #love.recycle.text <  love.recycle.pos.text then
 			local text = as3.class.mx.controls.Text.new()
 			table.insert(love.recycle.text,text)
-			canvasText.addChild(love.recycle.text[love.recycle.pos.text])
+			canvas.addChild(love.recycle.text[love.recycle.pos.text])
 		end
 		local text = love.recycle.text[love.recycle.pos.text]
 		text.text = text
@@ -101,7 +99,7 @@ love.graphics = {}
 		if #love.recycle.rect <  love.recycle.pos.rect then
 			local rect = as3.class.mx.containers.Canvas.new()
 			table.insert(love.recycle.rect,rect)
-			canvasText.addChild(love.recycle.rect[love.recycle.pos.rect])
+			canvas.addChild(love.recycle.rect[love.recycle.pos.rect])
 		end
 		local rect = love.recycle.rect[love.recycle.pos.rect]
 		rect.width = width
@@ -174,6 +172,9 @@ love.keyboard = {}
 		end
 	end
 love.mouse = {}
+	function love.mouse.getPosition() 
+		return canvas.mouseX, canvas.mouseY
+	end
 	function love.mouse.getX()
 		return canvas.mouseX
 	end
@@ -196,6 +197,9 @@ end
 function love.timer.getTime()
 	local time = as3.tolua(as3.namespace.flash.utils.getTimer())/1000
 	return time
+end
+function love.timer.getDelta()
+	return delta
 end
 function love.timer.sleep(sleep)
 	function love.refresh() end
@@ -222,10 +226,9 @@ function love.callback.mousereleased()
 	love.mousereleased(canvas.mouseX,canvas.mousey,"l")
 end
 function love.callback.keypressed(event)
-local charCode = tonumber(as3.tolua(event.charCode) )
-local keyCode = tonumber(as3.tolua(event.keyCode))
-local keyDown = love.keyboard.getKey(keyCode,charCode)
-
+	local charCode = tonumber(as3.tolua(event.charCode) )
+	local keyCode = tonumber(as3.tolua(event.keyCode))
+	local keyDown = love.keyboard.getKey(keyCode,charCode)
 	love.keypressed(keyDown)
 	table.insert(love.keyDown,keyDown)
 end
